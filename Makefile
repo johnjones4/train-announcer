@@ -8,4 +8,4 @@ install:
 	pip3 install -r requirements.txt
 	sudo ln -s /home/pi/train-announcer/trainannouncer.service /etc/systemd/system/trainannouncer.service
 	sudo systemctl daemon-reload
-	sudo systemctl enable air.service
+	sudo systemctl enable trainannouncer.service
