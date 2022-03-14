@@ -6,6 +6,6 @@ install:
 		libsox-dev \
 		libatlas-base-dev
 	pip3 install -r requirements.txt
-	ln -s /home/pi/train-announcer/trainannouncer.service /etc/systemd/system/trainannouncer.service
-	systemctl daemon-reload
-	systemctl enable air.service
+	sudo ln -s /home/pi/train-announcer/trainannouncer.service /etc/systemd/system/trainannouncer.service
+	sudo systemctl daemon-reload
+	sudo systemctl enable air.service
