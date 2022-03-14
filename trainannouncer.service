@@ -1,0 +1,14 @@
+[Unit]
+Description=DarkroomTimer
+After=multi-user.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/train-announcer
+Environment=AUDIO_DIR=/home/pi/audio STATION_CODE=ALX
+ExecStart=/usr/bin/python3 main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
