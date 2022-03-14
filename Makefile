@@ -1,5 +1,5 @@
 install:
-	sudo apt install \
+	sudo apt -y install \
 		build-essential \
 		python3-pip \
 		sox \
