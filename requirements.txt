@@ -1,0 +1,5 @@
+requests
+soxbindings
+boto3
+pbkdf2
+pycrypto
