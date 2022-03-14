@@ -1,17 +1,18 @@
-import requests
-import json
-from Crypto.Cipher import AES
-from pbkdf2 import PBKDF2
 import base64
 import datetime
+import json
+import logging
 import operator
-import time
-import boto3
-import sox
 import os
 import os.path
-import logging
 import pprint
+import time
+
+import boto3
+import requests
+import sox
+from Crypto.Cipher import AES
+from pbkdf2 import PBKDF2
 
 URL = "https://maps.amtrak.com/services/MapDataService/trains/getTrainsData"
 S_VALUE = "9a3686ac"
@@ -26,18 +27,21 @@ BACKGROUND_AUDIO_FILE = os.path.join(AUDIO_DIR, "background.ogg")
 SILENCE_AUDIO_FILE = os.path.join(AUDIO_DIR, "silence.ogg")
 AMTRAK_POLLING_INTERVAL = datetime.timedelta(seconds=60)
 
+
 def decrypt(data: str, key: str):
     """Decrypt data using AES and a PBKDF2 key"""
     p_key = PBKDF2(key, bytes.fromhex(S_VALUE)).read(16)
     cypher = AES.new(p_key, AES.MODE_CBC, bytes.fromhex(I_VALUE))
     plaintext = cypher.decrypt(base64.b64decode(data))
-    return plaintext.decode('utf-8')
+    return plaintext.decode("utf-8")
+
 
 def clean_string(string: str):
     """Clean the nonprintable characters at the end of a string"""
     while ord(string[len(string) - 1]) <= 32:
-        string = string[:len(string)-1]
+        string = string[: len(string) - 1]
     return string
+
 
 def fetch_data():
     """Fetch data from Amtrak"""
@@ -45,8 +49,8 @@ def fetch_data():
     response = requests.get(URL)
 
     # Slice the content and the key
-    encrypted_content = response.text[:len(response.text)-MASTER_SEGMENT]
-    encrypted_private_key = response.text[len(response.text)-MASTER_SEGMENT:]
+    encrypted_content = response.text[: len(response.text) - MASTER_SEGMENT]
+    encrypted_private_key = response.text[len(response.text) - MASTER_SEGMENT :]
 
     # Decrypt the private key using the public key
     private_key = decrypt(encrypted_private_key, PUBLIC_KEY).split("|")[0]
@@ -54,14 +58,16 @@ def fetch_data():
     # Decrypt and clean the content
     content = decrypt(encrypted_content, private_key)
     cleaned = clean_string(content)
-    
+
     # Parse the JSON
     return json.loads(cleaned)
+
 
 def load_stations():
     """Load a JSON file containing a map of station codes => station names"""
     with open("./stations.json", "r") as file:
         return json.loads(file.read())
+
 
 def get_arrivals(data, station_code):
     """Filter the arrivals data for just our station"""
@@ -92,18 +98,23 @@ def get_arrivals(data, station_code):
                         pprint.pprint(info)
                     # If we found an arrival time, create an entry in arrivals for it
                     if arrival_time_str:
-                        arrivals.append(dict(
-                            arrival_time=datetime.datetime.strptime(arrival_time_str, DATETIME_FORMAT),
-                            station=info["code"],
-                            destination=feature["properties"]["DestCode"],
-                            status=status,
-                            train=feature["properties"]["RouteName"],
-                            number=feature["properties"]["TrainNum"],
-                            id=feature["id"]
-                        ))
+                        arrivals.append(
+                            dict(
+                                arrival_time=datetime.datetime.strptime(
+                                    arrival_time_str, DATETIME_FORMAT
+                                ),
+                                station=info["code"],
+                                destination=feature["properties"]["DestCode"],
+                                status=status,
+                                train=feature["properties"]["RouteName"],
+                                number=feature["properties"]["TrainNum"],
+                                id=feature["id"],
+                            )
+                        )
     # Sort the arrivals
     arrivals.sort(key=operator.itemgetter("arrival_time"))
     return arrivals
+
 
 def get_current_arrival(arrivals, previous_arrivals):
     """Get a current arrival"""
@@ -111,24 +122,31 @@ def get_current_arrival(arrivals, previous_arrivals):
     five_minutes_ago = now - datetime.timedelta(minutes=5)
     for arrival in arrivals:
         # If an arrival has happened within the past five minutes, and we have announced it, return it
-        if arrival["arrival_time"] <= now and arrival["arrival_time"] >= five_minutes_ago and arrival["id"] not in previous_arrivals:
+        if (
+            arrival["arrival_time"] <= now
+            and arrival["arrival_time"] >= five_minutes_ago
+            and arrival["id"] not in previous_arrivals
+        ):
             return arrival
     return None
+
 
 def format_arrival(arrival, stations):
     """Format the arrival into a speakable string"""
     return f"Now arriving at {stations[arrival['station']]} station.<break time=\"0.25s\"/> The <emphasis>{arrival['train']}</emphasis> <break time=\"0.05s\"/> number <break time=\"0.005s\"/> <emphasis>{arrival['number']}</emphasis> bound for {stations[arrival['destination']]} station."
 
+
 def create_audio(text):
     """Convert the string to audio using AWS Polly"""
     output = boto3.client("polly").synthesize_speech(
-        Text = f"<speak><break time=\"1s\"/>{text}</speak>",
-        TextType = "ssml",
-        OutputFormat = "ogg_vorbis",
-        VoiceId = "Matthew"
+        Text=f'<speak><break time="1s"/>{text}</speak>',
+        TextType="ssml",
+        OutputFormat="ogg_vorbis",
+        VoiceId="Matthew",
     )
-    with open(ANNOUNCEMENT_AUDIO_FILE, 'wb') as file:
-        file.write(output['AudioStream'].read())
+    with open(ANNOUNCEMENT_AUDIO_FILE, "wb") as file:
+        file.write(output["AudioStream"].read())
+
 
 def play_audio():
     """Apply some effects to the audio and play it"""
@@ -137,27 +155,26 @@ def play_audio():
     tfm = sox.Combiner()
 
     # This one goes to eleven
-    tfm.gain(
-        10
-    )
+    tfm.gain(10)
 
     # Add an echo
-    tfm.echo(
-        gain_in=0.5,
-        gain_out=0.9,
-        delays=[150],
-        decays=[0.1]
-    )
+    tfm.echo(gain_in=0.5, gain_out=0.9, delays=[150], decays=[0.1])
 
     # Upgrade its channels and sample rate to be compatible with the background audio
     tfm.channels(2)
     tfm.rate(44100)
 
     # Prepend silence and output the file
-    tfm.build([SILENCE_AUDIO_FILE, ANNOUNCEMENT_AUDIO_FILE], UPRATED_ANNOUNCEMENT_AUDIO_FILE, "concatenate")
+    tfm.build(
+        [SILENCE_AUDIO_FILE, ANNOUNCEMENT_AUDIO_FILE],
+        UPRATED_ANNOUNCEMENT_AUDIO_FILE,
+        "concatenate",
+    )
 
     # Mix the background audio and the effects-added announcement
-    sox.Combiner().preview([BACKGROUND_AUDIO_FILE, UPRATED_ANNOUNCEMENT_AUDIO_FILE], "mix")
+    sox.Combiner().preview(
+        [BACKGROUND_AUDIO_FILE, UPRATED_ANNOUNCEMENT_AUDIO_FILE], "mix"
+    )
 
 
 def main():
@@ -167,11 +184,11 @@ def main():
     logging.basicConfig(
         format="%(asctime)s %(levelname)s %(message)s",
         level=logging.INFO,
-        datefmt="%Y-%m-%d %H:%M:%S"
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     logging.info("Starting up")
-    
+
     # Get our station
     our_station = os.environ.get("STATION_CODE", "ALX")
 
@@ -202,7 +219,7 @@ def main():
 
                 # Format it for speaking
                 formatted = format_arrival(arrival, stations)
-                logging.info(f"Will say \"{formatted}\"")
+                logging.info(f'Will say "{formatted}"')
 
                 # Create the audio
                 create_audio(formatted)
@@ -211,7 +228,9 @@ def main():
                 play_audio()
 
                 # Add this arrival to the buffer so we don't resay it
-                previous_arrivals[previous_arrivals_index % len(previous_arrivals)] = arrival["id"]
+                previous_arrivals[
+                    previous_arrivals_index % len(previous_arrivals)
+                ] = arrival["id"]
                 previous_arrivals_index += 1
             else:
                 logging.info("There are no present arrivals")
@@ -241,5 +260,6 @@ def main():
 
         # Wait 10 seconds to check for arrivals again
         time.sleep(10)
+
 
 main()
