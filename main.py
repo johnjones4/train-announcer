@@ -121,6 +121,7 @@ def get_current_arrival(arrivals, previous_arrivals):
     now = datetime.datetime.now()
     five_minutes_ago = now - datetime.timedelta(minutes=5)
     for arrival in arrivals:
+        # return arrival
         # If an arrival has happened within the past five minutes, and we have announced it, return it
         if (
             arrival["arrival_time"] <= now
@@ -133,7 +134,7 @@ def get_current_arrival(arrivals, previous_arrivals):
 
 def format_arrival(arrival, stations):
     """Format the arrival into a speakable string"""
-    return f"Now arriving at {stations[arrival['station']]} station.<break time=\"0.25s\"/> The <emphasis>{arrival['train']}</emphasis> <break time=\"0.05s\"/> number <break time=\"0.005s\"/> <emphasis>{arrival['number']}</emphasis> bound for {stations[arrival['destination']]} station."
+    return f"Now arriving at {stations[arrival['station']]} station.<break time=\"0.25s\"/> The <emphasis>{arrival['train']}</emphasis> <break time=\"0.05s\"/> number <break time=\"0.005s\"/> <emphasis>{arrival['number']}</emphasis> <break time=\"0.05s\"/> bound for <break time=\"0.005s\"/> <emphasis>{stations[arrival['destination']]}</emphasis> station."
 
 
 def create_audio(text):
