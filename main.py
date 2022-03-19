@@ -1,5 +1,6 @@
 import base64
 import datetime
+import enum
 import json
 import logging
 import operator
@@ -7,6 +8,7 @@ import os
 import os.path
 import pprint
 import time
+from threading import Thread
 
 import boto3
 import requests
@@ -26,6 +28,9 @@ UPRATED_ANNOUNCEMENT_AUDIO_FILE = os.path.join(AUDIO_DIR, "announcement_uprated.
 BACKGROUND_AUDIO_FILE = os.path.join(AUDIO_DIR, "background.ogg")
 SILENCE_AUDIO_FILE = os.path.join(AUDIO_DIR, "silence.ogg")
 AMTRAK_POLLING_INTERVAL = datetime.timedelta(seconds=60)
+SERVO_PIN = 23
+LIGHT_PINS = [24, 25]
+PWM=None
 
 
 def decrypt(data: str, key: str):
@@ -177,9 +182,18 @@ def play_audio():
         [BACKGROUND_AUDIO_FILE, UPRATED_ANNOUNCEMENT_AUDIO_FILE], "mix"
     )
 
+def setServoAngle(angle):
+    duty = angle / 18 + 3
+    GPIO.output(11, True)
+    PWM.ChangeDutyCycle(duty)
+    time.sleep(1)
+    GPIO.output(11, False)
+    PWM.ChangeDutyCycle(duty)
+
 
 def main():
     """The main function of this application"""
+    global PWM
 
     # Configure logging
     logging.basicConfig(
@@ -189,6 +203,16 @@ def main():
     )
 
     logging.info("Starting up")
+
+    # Setup IO
+    GPIO.setmode(GPIO.BOARD)
+
+    GPIO.setup(SERVO_PIN, GPIO.OUT)
+    PWM=GPIO.PWM(SERVO_PIN, 50)
+    PWM.start(0)
+
+    for pin in LIGHT_PINS:
+        GPIO.setup(pin, GPIO.OUT)
 
     # Get our station
     our_station = os.environ.get("STATION_CODE", "ALX")
@@ -225,8 +249,26 @@ def main():
                 # Create the audio
                 create_audio(formatted)
 
-                # Play the audio
-                play_audio()
+                # Start the audio
+                t = Thread(target = play_audio)
+
+                # Lower the crossing gate
+                setServoAngle(0)
+
+                # Blink the lights until the audio is done play
+                light_on = 0
+                while t.is_alive():
+                    for i, light_pin in enumerate(LIGHT_PINS):
+                        GPIO.output(light_pin, light_on % len(LIGHT_PINS) == i)
+                    light_on+=1
+                    time.sleep(1)
+
+                # Turn off the lights
+                for light_pin in LIGHT_PINS:
+                    GPIO.output(light_pin, False)
+
+                # Raise the crossing gate
+                setServoAngle(135)
 
                 # Add this arrival to the buffer so we don't resay it
                 previous_arrivals[
