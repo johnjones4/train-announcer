@@ -187,6 +187,8 @@ def play_audio():
         [BACKGROUND_AUDIO_FILE, UPRATED_ANNOUNCEMENT_AUDIO_FILE], "mix"
     )
 
+    time.sleep(10)
+
 def setServoAngle(angle):
     duty = angle / 18 + 3
     GPIO.output(SERVO_PIN, True)
@@ -216,9 +218,12 @@ def main():
     PWM=GPIO.PWM(SERVO_PIN, 50)
     PWM.start(0)
     setServoAngle(MAX_GATE_ANGLE)
+    GPIO.output(SERVO_PIN, False)
 
     for pin in LIGHT_PINS:
         GPIO.setup(pin, GPIO.OUT)
+        GPIO.output(pin, False)
+
 
     # Get our station
     our_station = os.environ.get("STATION_CODE", "ALX")
