@@ -30,6 +30,8 @@ SILENCE_AUDIO_FILE = os.path.join(AUDIO_DIR, "silence.ogg")
 AMTRAK_POLLING_INTERVAL = datetime.timedelta(seconds=60)
 SERVO_PIN = 23
 LIGHT_PINS = [24, 25]
+MIN_GATE_ANGLE = 5
+MAX_GATE_ANGLE = 130
 PWM=None
 
 
@@ -210,6 +212,7 @@ def main():
     GPIO.setup(SERVO_PIN, GPIO.OUT)
     PWM=GPIO.PWM(SERVO_PIN, 50)
     PWM.start(0)
+    setServoAngle(MAX_GATE_ANGLE)
 
     for pin in LIGHT_PINS:
         GPIO.setup(pin, GPIO.OUT)
@@ -253,7 +256,7 @@ def main():
                 t = Thread(target = play_audio)
 
                 # Lower the crossing gate
-                setServoAngle(0)
+                setServoAngle(MIN_GATE_ANGLE)
 
                 # Blink the lights until the audio is done play
                 light_on = 0
@@ -268,7 +271,7 @@ def main():
                     GPIO.output(light_pin, False)
 
                 # Raise the crossing gate
-                setServoAngle(135)
+                setServoAngle(MAX_GATE_ANGLE)
 
                 # Add this arrival to the buffer so we don't resay it
                 previous_arrivals[
