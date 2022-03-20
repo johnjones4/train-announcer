@@ -29,8 +29,8 @@ UPRATED_ANNOUNCEMENT_AUDIO_FILE = os.path.join(AUDIO_DIR, "announcement_uprated.
 BACKGROUND_AUDIO_FILE = os.path.join(AUDIO_DIR, "background.ogg")
 SILENCE_AUDIO_FILE = os.path.join(AUDIO_DIR, "silence.ogg")
 AMTRAK_POLLING_INTERVAL = datetime.timedelta(seconds=60)
-SERVO_PIN = 23
-LIGHT_PINS = [24, 25]
+SERVO_PIN = 16
+LIGHT_PINS = [18, 22]
 MIN_GATE_ANGLE = 5
 MAX_GATE_ANGLE = 130
 PWM=None
