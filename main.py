@@ -262,6 +262,7 @@ def main():
 
                 # Start the audio
                 t = Thread(target = play_audio)
+                t.start()
 
                 # Lower the crossing gate
                 setServoAngle(MIN_GATE_ANGLE)
