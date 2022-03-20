@@ -189,10 +189,10 @@ def play_audio():
 
 def setServoAngle(angle):
     duty = angle / 18 + 3
-    GPIO.output(11, True)
+    GPIO.output(SERVO_PIN, True)
     PWM.ChangeDutyCycle(duty)
     time.sleep(1)
-    GPIO.output(11, False)
+    GPIO.output(SERVO_PIN, False)
     PWM.ChangeDutyCycle(duty)
 
 
