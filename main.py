@@ -15,6 +15,7 @@ import requests
 import sox
 from Crypto.Cipher import AES
 from pbkdf2 import PBKDF2
+import RPi.GPIO as GPIO
 
 URL = "https://maps.amtrak.com/services/MapDataService/trains/getTrainsData"
 S_VALUE = "9a3686ac"
@@ -128,6 +129,8 @@ def get_current_arrival(arrivals, previous_arrivals):
     now = datetime.datetime.now()
     five_minutes_ago = now - datetime.timedelta(minutes=5)
     for arrival in arrivals:
+        if os.environ.get("FORCE_ARRIVAL"):
+            return arrival
         # return arrival
         # If an arrival has happened within the past five minutes, and we have announced it, return it
         if (
