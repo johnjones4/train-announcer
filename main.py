@@ -213,6 +213,8 @@ def main():
 
     servos.ResetGpioAtShutdown(False)
 
+    setServoAngle(GATE_UP)
+
     # Setup IO
     GPIO.setmode(GPIO.BOARD)
 
