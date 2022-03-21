@@ -16,6 +16,7 @@ import sox
 from Crypto.Cipher import AES
 from pbkdf2 import PBKDF2
 import RPi.GPIO as GPIO
+from RaspberryMotors.motors import servos
 
 URL = "https://maps.amtrak.com/services/MapDataService/trains/getTrainsData"
 S_VALUE = "9a3686ac"
@@ -31,8 +32,10 @@ SILENCE_AUDIO_FILE = os.path.join(AUDIO_DIR, "silence.ogg")
 AMTRAK_POLLING_INTERVAL = datetime.timedelta(seconds=60)
 SERVO_PIN = 16
 LIGHT_PINS = [18, 22]
-MIN_GATE_ANGLE = 5
-MAX_GATE_ANGLE = 130
+MIN_GATE_ANGLE = 0
+MAX_GATE_ANGLE = 135
+GATE_UP = MAX_GATE_ANGLE
+GATE_DOWN = MIN_GATE_ANGLE
 PWM=None
 
 
@@ -190,13 +193,10 @@ def play_audio():
     time.sleep(10)
 
 def setServoAngle(angle):
-    duty = angle / 18 + 3
-    GPIO.output(SERVO_PIN, True)
-    PWM.ChangeDutyCycle(duty)
-    time.sleep(1)
-    GPIO.output(SERVO_PIN, False)
-    PWM.ChangeDutyCycle(duty)
-
+    """Set the angle of the gate servo"""
+    s1 = servos.servo(SERVO_PIN)
+    s1.setAngleAndWait(angle)
+    s1.shutdown()
 
 def main():
     """The main function of this application"""
@@ -211,14 +211,10 @@ def main():
 
     logging.info("Starting up")
 
+    servos.ResetGpioAtShutdown(False)
+
     # Setup IO
     GPIO.setmode(GPIO.BOARD)
-
-    GPIO.setup(SERVO_PIN, GPIO.OUT)
-    PWM=GPIO.PWM(SERVO_PIN, 50)
-    PWM.start(0)
-    setServoAngle(MAX_GATE_ANGLE)
-    GPIO.output(SERVO_PIN, False)
 
     for pin in LIGHT_PINS:
         GPIO.setup(pin, GPIO.OUT)
@@ -265,7 +261,7 @@ def main():
                 t.start()
 
                 # Lower the crossing gate
-                setServoAngle(MIN_GATE_ANGLE)
+                setServoAngle(GATE_DOWN)
 
                 # Blink the lights until the audio is done play
                 light_on = 0
@@ -280,7 +276,7 @@ def main():
                     GPIO.output(light_pin, False)
 
                 # Raise the crossing gate
-                setServoAngle(MAX_GATE_ANGLE)
+                setServoAngle(GATE_UP)
 
                 # Add this arrival to the buffer so we don't resay it
                 previous_arrivals[

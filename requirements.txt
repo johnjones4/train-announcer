@@ -3,3 +3,5 @@ soxbindings
 boto3
 pbkdf2
 pycrypto
+RPi.GPIO
+RaspberryMotors
