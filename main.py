@@ -36,7 +36,7 @@ MIN_GATE_ANGLE = 0
 MAX_GATE_ANGLE = 135
 GATE_UP = MAX_GATE_ANGLE
 GATE_DOWN = MIN_GATE_ANGLE
-PWM=None
+BLINK_DELAY=0.5
 
 
 def decrypt(data: str, key: str):
@@ -269,7 +269,7 @@ def main():
                     for i, light_pin in enumerate(LIGHT_PINS):
                         GPIO.output(light_pin, light_on % len(LIGHT_PINS) == i)
                     light_on+=1
-                    time.sleep(1)
+                    time.sleep(BLINK_DELAY)
 
                 # Turn off the lights
                 for light_pin in LIGHT_PINS:
