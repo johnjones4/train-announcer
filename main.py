@@ -161,10 +161,8 @@ def create_audio(text):
     with open(ANNOUNCEMENT_AUDIO_FILE, "wb") as file:
         file.write(output["AudioStream"].read())
 
-
-def play_audio():
-    """Apply some effects to the audio and play it"""
-
+def mix_audio():
+    """Apply some effects to the audio"""
     # Create combiner to apply effects to the announcement and pad it with silence
     tfm = sox.Combiner()
 
@@ -185,12 +183,12 @@ def play_audio():
         "concatenate",
     )
 
+def play_audio():
+    """Play audio"""
     # Mix the background audio and the effects-added announcement
     sox.Combiner().preview(
         [BACKGROUND_AUDIO_FILE, UPRATED_ANNOUNCEMENT_AUDIO_FILE], "mix"
     )
-
-    time.sleep(10)
 
 def setServoAngle(angle):
     """Set the angle of the gate servo"""
@@ -257,6 +255,9 @@ def main():
 
                 # Create the audio
                 create_audio(formatted)
+
+                # Mix it 
+                mix_audio()
 
                 # Start the audio
                 t = Thread(target = play_audio)
