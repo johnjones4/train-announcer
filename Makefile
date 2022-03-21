@@ -9,3 +9,8 @@ install:
 	sudo ln -s /home/pi/train-announcer/trainannouncer.service /etc/systemd/system/trainannouncer.service
 	sudo systemctl daemon-reload
 	sudo systemctl enable trainannouncer.service
+
+tidy:
+	isort ./**/*.py
+	black ./**/*.py
+	pylint --fail-under=9 ./**/*.py
