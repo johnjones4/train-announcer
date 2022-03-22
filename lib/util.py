@@ -48,7 +48,7 @@ def runloop(our_station, arrival_callback, departure_callback):
             else:
                 logging.info("There are no present arrivals")
 
-            departure = amtrak.get_current_departure(trains, previous_arrivals)
+            departure = amtrak.get_current_departure(trains, previous_departures)
 
             # If there's an arrival
             if departure:
