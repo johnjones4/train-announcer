@@ -21,7 +21,6 @@ BLINK_DELAY = 0.5
 TYPE_ARRIVAL = 1
 TYPE_DEPARTURE = 2
 
-
 def set_servo_angle(angle):
     """Set the angle of the gate servo"""
     servo = servos.servo(SERVO_PIN)

@@ -7,6 +7,19 @@ from lib import amtrak
 
 AMTRAK_POLLING_INTERVAL = datetime.timedelta(seconds=60)
 
+QUIET_HOURS = [
+    (0,7),
+    (6,24)
+]
+
+
+def should_make_noise():
+    now = datetime.datetime.now()
+    for (start, end) in QUIET_HOURS:
+        if start <= now.hour <= end:
+            return False
+    return True
+
 
 def runloop(our_station, arrival_callback, departure_callback):
     """Run forever a fire a callback when there's a new train"""
@@ -38,7 +51,8 @@ def runloop(our_station, arrival_callback, departure_callback):
             if arrival:
                 logging.info("There is an arrival %s", str(arrival))
 
-                arrival_callback(arrival, stations)
+                if should_make_noise():
+                    arrival_callback(arrival, stations)
 
                 # Add this arrival to the buffer so we don't resay it
                 previous_arrivals[
@@ -54,7 +68,8 @@ def runloop(our_station, arrival_callback, departure_callback):
             if departure:
                 logging.info("There is a departure %s", str(arrival))
 
-                departure_callback(departure, stations)
+                if should_make_noise():
+                    departure_callback(departure, stations)
 
                 # Add this departure to the buffer so we don't resay it
                 previous_departures[
