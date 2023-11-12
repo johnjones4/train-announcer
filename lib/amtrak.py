@@ -109,10 +109,10 @@ def get_trains(data, station_code):
                             dict(
                                 arrival_time=datetime.datetime.strptime(
                                     arrival_time_str, DATETIME_FORMAT
-                                ),
+                                ) if arrival_time_str else None,
                                 departure_time=datetime.datetime.strptime(
                                     departure_time_str, DATETIME_FORMAT
-                                ),
+                                ) if departure_time_str else None,
                                 station=info["code"],
                                 destination=feature["properties"]["DestCode"],
                                 status=status,
@@ -136,7 +136,8 @@ def get_current_arrival(trains, previous_trains):
         # If an arrival has happened within the past five minutes,
         # and we have announced it, return it
         if (
-            train["arrival_time"] <= now
+            train["arrival_time"]
+            and train["arrival_time"] <= now
             and train["arrival_time"] >= five_minutes_ago
             and train["id"] not in previous_trains
         ):
@@ -154,7 +155,8 @@ def get_current_departure(trains, previous_trains):
         # If an arrival has happened within the past five minutes,
         # and we have announced it, return it
         if (
-            train["departure_time"] <= now
+            train["departure_time"]
+            and train["departure_time"] <= now
             and train["departure_time"] >= five_minutes_ago
             and train["id"] not in previous_trains
         ):

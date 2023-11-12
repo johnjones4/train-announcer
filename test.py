@@ -11,7 +11,7 @@ logging.basicConfig(
 )
 
 # Get our station
-our_station = os.environ.get("STATION_CODE", "ALX")
+our_station = os.environ.get("STATION_CODE", "WAS")
 
 # Start the runloop
 util.runloop(our_station, lambda train, _: print(f"Arrival: {train}"), lambda train, _: print(f"Departure: {train}"))
