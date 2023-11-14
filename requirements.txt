@@ -2,6 +2,6 @@ requests
 soxbindings
 boto3
 pbkdf2
-pycrypto
+pycryptodome
 RPi.GPIO
 RaspberryMotors

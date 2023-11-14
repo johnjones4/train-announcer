@@ -9,7 +9,7 @@ AMTRAK_POLLING_INTERVAL = datetime.timedelta(seconds=60)
 
 QUIET_HOURS = [
     (0,7),
-    (6,24)
+    (22,24)
 ]
 
 
