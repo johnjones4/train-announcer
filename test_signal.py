@@ -14,7 +14,8 @@ signal.signal_init()
 train = {
     "station": "WAS",
     "train": "Northeast Regional",
-    "destination": "NYP"
+    "destination": "NYP",
+    "number": "156"
 }
 
 stations = amtrak.load_stations()
