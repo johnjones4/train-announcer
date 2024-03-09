@@ -40,12 +40,18 @@ def announce_train(train, stations, type):
     # Mix it
     audio.mix_audio()
 
+    logging.info('Starting audio')
+
     # Start the audio
     thread = Thread(target=audio.play_audio)
     thread.start()
 
+    logging.info('Dropping gate')
+
     # Lower the crossing gate
     set_servo_angle(GATE_DOWN)
+
+    logging.info('Blinking lights')
 
     # Blink the lights until the audio is done play
     light_on = 0
@@ -58,6 +64,8 @@ def announce_train(train, stations, type):
     # Turn off the lights
     for light_pin in LIGHT_PINS:
         GPIO.output(light_pin, False)
+
+    logging.info('Lifting gate')
 
     # Raise the crossing gate
     set_servo_angle(GATE_UP)
